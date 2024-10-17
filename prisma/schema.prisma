@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Todo {
+  id          String    @id @default(uuid()) @map("_id")
+  title       String
+  description String?
+  isCompleted Boolean   @default(false)
+  isImportant Boolean   @default(false)
+  date        String
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  userId      String
+}
