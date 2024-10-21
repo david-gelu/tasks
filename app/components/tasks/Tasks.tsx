@@ -33,7 +33,7 @@ function Tasks({ title, tasks }: Props) {
         />
         <button className="btn-rounded" onClick={openModal}>{plus}</button>
       </div>
-      {isLoading ? <Loading /> :
+      {
         <div className="tasks grid">
           {tasks.length > 0 && tasks.map((task: any) => (
             <TaskItem

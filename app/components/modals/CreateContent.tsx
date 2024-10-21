@@ -88,7 +88,7 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
   return (
     <CreateContentStyled onSubmit={handleSubmit} theme={theme}>
       <h1>Create a Task</h1>
-      {/* <div className="input-control">
+      <div className="input-control">
         <label htmlFor="title">Title</label>
         <input
           type="text"
@@ -98,7 +98,7 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
           onChange={handleChange("title")}
           placeholder="e.g, Watch a video from Fireship."
         />
-      </div> */}
+      </div>
       <div className="input-control">
         <label htmlFor="description">Description</label>
         <textarea

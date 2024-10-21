@@ -1,5 +1,5 @@
 import prisma from "@/app/utils/connect"
-import { currentUser } from "@clerk/nextjs/server"
+// import { currentUser } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
 export async function DELETE(
@@ -7,12 +7,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await currentUser()
+    // const user = await currentUser()
     const { id } = params
 
-    if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 })
-    }
+    // if (!user) {
+    //   return new NextResponse("Unauthorized", { status: 401 })
+    // }
 
     const task = await prisma.todo.delete({ where: { id } })
 
@@ -27,13 +27,13 @@ export async function DELETE(
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
 
   try {
-    const user = await currentUser()
+    // const user = await currentUser()
     const { id } = params
     const { taskData } = await req.json()
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized', status: 401 })
-    }
+    // if (!user) {
+    //   return NextResponse.json({ error: 'Unauthorized', status: 401 })
+    // }
     if (!id) {
       return NextResponse.json({ error: 'Task ID is required', status: 400 })
     }

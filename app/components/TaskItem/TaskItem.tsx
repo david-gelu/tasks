@@ -20,7 +20,7 @@ function TaskItem({ title, description, date, isCompleted, id }: Props) {
   const { theme, deleteTask, updateTask, modal, openModal, taskBeingEdited, editTaskModal, importantTasks } = useGlobalState()
   return (
     <TaskItemStyled theme={theme} important={importantTasks.find((task: Todo) => task.id === id && task.isImportant)}>
-      {/* <h1>{title}</h1> */}
+      <strong>{title}</strong>
       <span>{description}</span>
       <span className="date">{formatDate(date)}</span>
       <div className="task-footer">

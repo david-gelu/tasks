@@ -1,7 +1,7 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from "react"
 import themes from "./themes"
 import axios from "axios"
-import { useUser } from "@clerk/nextjs"
+// import { useUser } from "@clerk/nextjs"
 import { Todo } from "@prisma/client"
 import toast from "react-hot-toast"
 
@@ -13,12 +13,12 @@ interface Props {
 }
 
 export const GlobalProvider = ({ children }: Props) => {
-  const { user } = useUser()
+  // const { user } = useUser()
 
   const [selectedTheme, setSelectedTheme] = useState('dark')
   const [isLoading, setIsLoading] = useState(false)
   const [modal, setModal] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
   const [taskBeingEdited, setTaskBeingEdited] = useState<Partial<Todo> | null>(null)
   const [tasks, setTasks] = useState([])
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,9 +112,12 @@ export const GlobalProvider = ({ children }: Props) => {
   const importantTasks = filteredTasks.filter((todo: Todo) => todo.isImportant === true)
   const incompleteTasks = filteredTasks.filter((todo: Todo) => todo.isCompleted === false)
 
+  // useEffect(() => {
+  //   if (user) allTasks()
+  // }, [user])
   useEffect(() => {
-    if (user) allTasks()
-  }, [user])
+    allTasks()
+  }, [])
 
   return (
     <GlobalContext.Provider

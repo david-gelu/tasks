@@ -1,18 +1,18 @@
 import prisma from "@/app/utils/connect"
-import { useAuth } from "@clerk/nextjs"
-import { currentUser } from "@clerk/nextjs/server"
+// import { useAuth } from "@clerk/nextjs"
+// import { currentUser } from "@clerk/nextjs/server"
 import { PrismaClient } from "@prisma/client"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
   try {
-    const user = await currentUser()
+    // const user = await currentUser()
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized", status: 401 })
-    }
+    // if (!user) {
+    //   return NextResponse.json({ error: "Unauthorized", status: 401 })
+    // }
 
-    const { title = '', description, date, completed, important } = await req.json()
+    const { title, description, date, completed, important } = await req.json()
 
     if (!title || !description || !date) {
       return NextResponse.json({
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         date,
         isCompleted: completed,
         isImportant: important,
-        userId: user?.id,
+        userId: 'user_test',
       },
     })
 
@@ -49,12 +49,12 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
 
   try {
-    const user = await currentUser()
+    // const user = await currentUser()
 
-    if (!user) return NextResponse.json({ error: "Unauthorized", status: 401 })
+    // if (!user) return NextResponse.json({ error: "Unauthorized", status: 401 })
 
 
-    const tasks = await prisma.todo.findMany({ where: { userId: user.id } })
+    const tasks = await prisma.todo.findMany({ where: { userId: 'user_test' } })
 
     return NextResponse.json(tasks)
   } catch (error) {
@@ -65,10 +65,10 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const user = await currentUser()
+    // const user = await currentUser()
     const { isCompleted, id } = await req.json()
 
-    if (!user) return NextResponse.json({ error: "Unauthorized", status: 401 })
+    // if (!user) return NextResponse.json({ error: "Unauthorized", status: 401 })
 
     const task = await prisma.todo.update({
       where: { id },

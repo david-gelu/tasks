@@ -7,18 +7,18 @@ import menu from "@/app/utils/menu"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { arrowLeft, bars, logout, moon, sun } from "@/app/utils/Icons"
-import { SignInButton, SignedOut, UserButton, useClerk, useUser } from "@clerk/nextjs"
+// import { SignInButton, SignedOut, UserButton, useClerk, useUser } from "@clerk/nextjs"
 import { useGlobalState } from "@/app/context/global"
 import Button from "../button/Button"
 import Loading from "../loading/Loading"
 
 function Sidebar() {
   const { theme, changeThemeColor, collapsed, collapseMenu } = useGlobalState()
-  const { signOut } = useClerk()
+  // const { signOut } = useClerk()
 
-  const { user, isSignedIn, isLoaded } = useUser()
+  // const { user, isSignedIn, isLoaded } = useUser()
 
-  const { firstName, lastName, imageUrl } = user || {
+  const { firstName, lastName, imageUrl } = {
     firstName: "",
     lastName: "",
     imageUrl: "",
@@ -30,9 +30,9 @@ function Sidebar() {
   const handleClick = (link: string) => {
     router.push(link)
   }
-  if (!isSignedIn) return <></>
+  // if (!isSignedIn) return <></>
 
-  if (!isLoaded) return <Loading />
+  // if (!isLoaded) return <Loading />
 
   return (
     <SidebarStyled className="fancy-border" theme={theme} $collapsed={collapsed}>
@@ -43,7 +43,7 @@ function Sidebar() {
         <div className="profile-overlay"></div>
         <div className="image">
           {imageUrl ? <div className="user-btn absolute z-20 top-0 w-full h-full">
-            <UserButton />
+            {/* <UserButton /> */}
           </div>
             : <Image width={70} height={70} src={'/user-logo.png'} alt="profile" />}
         </div>
