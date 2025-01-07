@@ -73,7 +73,7 @@ export async function GET(req: Request) {
     return NextResponse.json(tasks)
   } catch (error) {
     console.log("ERROR GETTING TASKS: ", error)
-    return NextResponse.json({ error: "Error updating task", status: 500 })
+    return NextResponse.json({ error: "Error getting task", status: 500 })
   }
 }
 
