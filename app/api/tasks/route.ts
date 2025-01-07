@@ -54,7 +54,21 @@ export async function GET(req: Request) {
     // if (!user) return NextResponse.json({ error: "Unauthorized", status: 401 })
 
 
-    const tasks = await prisma.todo.findMany({ where: { userId: 'user_test' } })
+    // const tasks = await prisma.todo.findMany({
+    //   where: { userId: user.id }, orderBy: [
+    //     { isCompleted: 'asc' },
+    //     { date: 'asc' },
+    //   ],
+    // })
+    const tasks = await prisma.todo.findMany({
+      where: {
+        userId: process.env.USER_ENV,
+      },
+      orderBy: [
+        { isCompleted: 'asc' },
+        { date: 'asc' },
+      ],
+    })
 
     return NextResponse.json(tasks)
   } catch (error) {
