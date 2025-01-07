@@ -31,27 +31,32 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
 
   const { theme, allTasks, closeModal } = useGlobalState()
 
-  const handleChange = (name: string) => (e: any) => {
-    switch (name) {
-      case "title":
-        setTitle(e.target.value)
-        break
-      case "description":
-        setDescription(e.target.value)
-        break
-      case "date":
-        setDate(e.target.value)
-        break
-      case "completed":
-        setCompleted(e.target.checked)
-        break
-      case "important":
-        setImportant(e.target.checked)
-        break
-      default:
-        break
+  const handleChange = (name: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.target instanceof HTMLInputElement && (name === "completed" || name === "important")) {
+      const isChecked = e.target.checked;
+      if (name === "completed") {
+        setCompleted(isChecked)
+      } else if (name === "important") {
+        setImportant(isChecked)
+      }
+    } else {
+      const value = e.target.value
+      switch (name) {
+        case "title":
+          setTitle(value)
+          break
+        case "description":
+          setDescription(value)
+          break
+        case "date":
+          setDate(value)
+          break
+        default:
+          break
+      }
     }
   }
+
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
@@ -126,21 +131,21 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
       <div className="input-control toggler">
         <label htmlFor="completed">Toggle Completed</label>
         <input
-          value={completed.toString()}
-          onChange={handleChange("completed")}
           type="checkbox"
           name="completed"
           id="completed"
+          checked={completed}
+          onChange={handleChange("completed")}
         />
       </div>
       <div className="input-control toggler">
         <label htmlFor="important">Toggle Important</label>
         <input
-          value={important.toString()}
-          onChange={handleChange("important")}
           type="checkbox"
           name="important"
           id="important"
+          checked={important}
+          onChange={handleChange("important")}
         />
       </div>
 

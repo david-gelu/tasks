@@ -30,8 +30,6 @@ export const GlobalProvider = ({ children }: Props) => {
   const changeThemeColor = (newTheme: string) => {
     setSelectedTheme(newTheme)
     document.documentElement.setAttribute('data-theme', newTheme)
-    console.log(`newTheme:`, newTheme)
-    console.log(`heme:`, theme)
   }
 
   const closeModal = () => {
@@ -55,12 +53,7 @@ export const GlobalProvider = ({ children }: Props) => {
     setIsLoading(true)
     try {
       const res = await axios.get("/api/tasks")
-      const sorted = res.data.sort((a: Todo, b: Todo) => {
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-      })
-      setTasks(sorted)
+      setTasks(res.data)
       setIsLoading(false)
     } catch (error) {
       console.log(error)

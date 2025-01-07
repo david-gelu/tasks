@@ -20,7 +20,7 @@ function TaskItem({ title, description, date, isCompleted, id }: Props) {
   const { theme, deleteTask, updateTask, modal, openModal, taskBeingEdited, editTaskModal, importantTasks } = useGlobalState()
   return (
     <TaskItemStyled theme={theme} important={importantTasks.find((task: Todo) => task.id === id && task.isImportant)}>
-      <strong>{title}</strong>
+      <h1>{title}</h1>
       <span>{description}</span>
       <span className="date">{formatDate(date)}</span>
       <div className="task-footer">
@@ -62,7 +62,6 @@ const TaskItemStyled = styled.div<{ important: boolean }>`
   /* box-shadow: ${({ theme }) => theme.shadow7}; */
   border: 2px solid ${({ theme, important }) => important ? theme.colorDanger : theme.colorIcons};
   width:100%;
-  height: 10rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

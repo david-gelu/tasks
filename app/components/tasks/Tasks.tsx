@@ -123,7 +123,6 @@ const TaskStyled = styled.main`
     align-items: center;
     justify-content: center;
     gap: 0.5em;
-    height: 10em;
     color: ${({ theme }) => theme.color1};
     font-weight: 600;
     cursor: pointer;
