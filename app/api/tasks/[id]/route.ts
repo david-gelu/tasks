@@ -46,6 +46,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         date: taskData.date,
         isCompleted: taskData.isCompleted,
         isImportant: taskData.isImportant,
+        userId: process.env.USER_ENV
       },
     })
 

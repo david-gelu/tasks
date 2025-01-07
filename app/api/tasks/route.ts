@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         date,
         isCompleted: completed,
         isImportant: important,
-        userId: 'user_test',
+        userId: process.env.USER_ENV || 'user_test',
       },
     })
 
@@ -85,7 +85,7 @@ export async function PUT(req: Request) {
     // if (!user) return NextResponse.json({ error: "Unauthorized", status: 401 })
 
     const task = await prisma.todo.update({
-      where: { id },
+      where: { id, userId: process.env.USER_ENV },
       data: { isCompleted },
     })
 
