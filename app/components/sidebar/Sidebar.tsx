@@ -7,13 +7,19 @@ import { useSession } from "next-auth/react"
 import menu from "@/app/utils/menu"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { arrowLeft, bars, logout, moon, sun } from "@/app/utils/Icons"
+import { arrowLeft, bars, moon, sun } from "@/app/utils/Icons"
 // import { SignInButton, SignedOut, UserButton, useClerk, useUser } from "@clerk/nextjs"
 import { useGlobalState } from "@/app/context/global"
-import Button from "../button/Button"
-import Loading from "../loading/Loading"
 import UserDropdown from '../dropdown/UserDropdown'
 import EditProfileModal from "../modals/EditProfileModal"
+
+interface ExtendedUser {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  username?: string | null
+}
 
 function Sidebar() {
   const { data: session } = useSession()
@@ -23,8 +29,9 @@ function Sidebar() {
 
   // Get user info from session
   const userImage = session?.user?.image || '/images/user-logo.png'
-  const userName = session?.user?.name || session?.user?.username || 'User'
-  console.log('Session:', session)
+  const userName = (session?.user as ExtendedUser)?.username ||
+    session?.user?.name ||
+    'User'
   const [firstName, lastName] = userName.split(' ')
 
   const router = useRouter()

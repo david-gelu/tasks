@@ -2,8 +2,7 @@ import { requestLock } from "@/app/utils/requestLock"
 import prisma from "@/app/utils/connect"
 import { getServerSession } from "next-auth/next"
 import { NextResponse } from "next/server"
-import { authOptions } from "../../auth/[...nextauth]/route"
-import { ObjectId } from "mongodb"
+import { authOptions } from "@/app/lib/auth/auth-options"
 
 export async function DELETE(
   req: Request,
