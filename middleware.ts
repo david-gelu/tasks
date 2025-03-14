@@ -3,28 +3,44 @@ import { NextResponse } from "next/server"
 
 export default withAuth(
   function middleware(req) {
-    const isAuth = req.nextauth.token
+    const token = req.nextauth.token
+    const isAuthenticated = !!token
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const isPublicPage = ['/'].includes(req.nextUrl.pathname)
 
-    if (isAuthPage) {
-      if (isAuth) {
-        return NextResponse.redirect(new URL('/tasks', baseUrl))
-      }
-      return null
+    // Redirect authenticated users away from auth pages
+    if (isAuthPage && isAuthenticated) {
+      return NextResponse.redirect(new URL('/tasks', req.url))
     }
 
-    if (!isAuth) {
-      return NextResponse.redirect(new URL('/auth/signin', baseUrl))
+    // Allow access to public pages
+    if (isPublicPage) {
+      return NextResponse.next()
     }
+
+    // Redirect unauthenticated users to login
+    if (!isAuthenticated && !isAuthPage) {
+      return NextResponse.redirect(new URL('/auth/signin', req.url))
+    }
+
+    return NextResponse.next()
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token
+      authorized: ({ token }) => true // Let the middleware function handle the auth logic
     },
   }
 )
 
 export const config = {
-  matcher: ['/tasks/:path*', '/auth/:path*']
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images (public images)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|images/).*)'
+  ]
 }

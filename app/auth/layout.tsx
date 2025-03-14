@@ -4,7 +4,11 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export default function Home() {
+export default function AuthLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
   const { data: session, status } = useSession()
   const router = useRouter()
 
@@ -13,10 +17,16 @@ export default function Home() {
 
     if (session) {
       router.push('/tasks')
-    } else {
-      router.push('/auth/signin')
     }
   }, [session, status, router])
 
-  return null // or loading spinner
+  if (status === 'loading') {
+    return <div>Loading...</div>
+  }
+
+  if (session) {
+    return null
+  }
+
+  return <>{children}</>
 }
