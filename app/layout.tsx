@@ -1,28 +1,25 @@
 'use client'
 
 import { Nunito } from "next/font/google"
-// import { ClerkProvider } from "@clerk/nextjs"
 import "./globals.scss"
 import NextTopLoader from "nextjs-toploader"
 import ContextProviders from "./components/providers/ContextProviders"
 import Sidebar from "./components/sidebar/Sidebar"
 import GlobalStyles from "./components/providers/GlobalStyles"
-// import { dark } from "@clerk/themes"
+import AuthContext from "./context/AuthContext"
+import { SessionProvider } from "next-auth/react"
 
 const nunito = Nunito({
   weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
 })
 
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-
   return (
-
     <html lang="en" data-theme="dark">
       <head>
         <link
@@ -33,18 +30,22 @@ export default function RootLayout({
           referrerPolicy="no-referrer"
         />
       </head>
-      <body className={nunito.className}>
+      <body className={nunito.className} suppressHydrationWarning>
         <NextTopLoader
           height={5}
           color="#27AE60"
           easing="cubic-bezier(0.53,0.21,0,1)"
         />
-        <ContextProviders>
-          <GlobalStyles>
-            <Sidebar />
-            <div className="w-full">{children}</div>
-          </GlobalStyles>
-        </ContextProviders>
+        <SessionProvider refetchInterval={0}>
+          <AuthContext>
+            <ContextProviders>
+              <GlobalStyles>
+                <Sidebar />
+                <div className="w-full">{children}</div>
+              </GlobalStyles>
+            </ContextProviders>
+          </AuthContext>
+        </SessionProvider>
       </body>
     </html>
   )

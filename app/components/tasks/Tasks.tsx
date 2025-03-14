@@ -6,7 +6,6 @@ import styled from "styled-components"
 import TaskItem from "../TaskItem/TaskItem"
 import { add, plus } from "@/app/utils/Icons"
 import Modal from "../modals/Modal"
-import Loading from "../loading/Loading"
 import { Todo } from "@prisma/client"
 
 interface Props {
@@ -17,7 +16,9 @@ interface Props {
 function Tasks({ title, tasks }: Props) {
   const { theme, isLoading, openModal, modal, searchTerm, setSearchTerm, filteredTasks } = useGlobalState()
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => { setSearchTerm(e.target.value) }
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  }
 
   return (
     <TaskStyled theme={theme}>
@@ -35,7 +36,7 @@ function Tasks({ title, tasks }: Props) {
       </div>
       {
         <div className="tasks grid">
-          {tasks.length > 0 && tasks.map((task: any) => (
+          {filteredTasks.length > 0 && filteredTasks.map((task: any) => (
             <TaskItem
               key={task.id}
               title={task.title}
@@ -43,6 +44,7 @@ function Tasks({ title, tasks }: Props) {
               date={task.date}
               isCompleted={task.isCompleted}
               id={task.id}
+              isImportant={task.isImportant}
             />
           ))}
           <button className="create-task" onClick={openModal}>
@@ -50,7 +52,7 @@ function Tasks({ title, tasks }: Props) {
           </button>
         </div>
       }
-    </TaskStyled >
+    </TaskStyled>
   )
 }
 

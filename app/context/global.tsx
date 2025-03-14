@@ -1,29 +1,65 @@
-import { createContext, useState, useContext, useEffect, ReactNode } from "react"
+'use client'
+
+import { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from "react"
 import themes from "./themes"
 import axios from "axios"
-// import { useUser } from "@clerk/nextjs"
 import { Todo } from "@prisma/client"
 import toast from "react-hot-toast"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import Image from 'next/image'
 
-export const GlobalContext = createContext<any>({})
-export const GlobalUpdateContext = createContext<any>({})
+interface GlobalContextType {
+  theme: {
+    name: string;
+    [key: string]: any;
+  };
+  tasks: Todo[];
+  deleteTask: (id: string) => Promise<void>;
+  editTask: (todo: Todo, id: string) => Promise<void>;
+  taskBeingEdited: Partial<Todo> | null;
+  editTaskModal: (task: Todo) => void;
+  createNewTaskModal: () => void;
+  isLoading: boolean;
+  completedTasks: Todo[];
+  importantTasks: Todo[];
+  incompleteTasks: Todo[];
+  updateTask: (todo: Todo) => Promise<void>;
+  modal: boolean;
+  openModal: () => void;
+  closeModal: () => void;
+  allTasks: () => Promise<void>;
+  collapsed: boolean;
+  collapseMenu: () => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  filteredTasks: Todo[];
+  changeThemeColor: (newTheme: string) => void;
+  userImage: string;
+}
+
+export const GlobalContext = createContext<GlobalContextType>({} as GlobalContextType)
+export const GlobalUpdateContext = createContext<GlobalContextType>({} as GlobalContextType)
 
 interface Props {
   children: ReactNode
 }
 
 export const GlobalProvider = ({ children }: Props) => {
-  // const { user } = useUser()
+  const { data: session, status } = useSession()
+  const router = useRouter()
 
   const [selectedTheme, setSelectedTheme] = useState('dark')
   const [isLoading, setIsLoading] = useState(false)
+  const [tasks, setTasks] = useState<Todo[]>([])
   const [modal, setModal] = useState(false)
   const [collapsed, setCollapsed] = useState(true)
   const [taskBeingEdited, setTaskBeingEdited] = useState<Partial<Todo> | null>(null)
-  const [tasks, setTasks] = useState([])
   const [searchTerm, setSearchTerm] = useState("");
 
-  const theme = themes.find(a => a.name === selectedTheme)
+  const theme = themes.find(a => a.name === selectedTheme) || themes[0]
+
+  const userImage = session?.user?.image || '/images/user-logo.png'
 
   const openModal = () => setModal(true)
 
@@ -49,16 +85,20 @@ export const GlobalProvider = ({ children }: Props) => {
 
   const collapseMenu = () => { setCollapsed(!collapsed) }
 
-  const allTasks = async () => {
+  const allTasks = useCallback(async () => {
+    if (!session?.user) return
+
     setIsLoading(true)
     try {
       const res = await axios.get("/api/tasks")
-      setTasks(res.data)
-      setIsLoading(false)
+      setTasks(Array.isArray(res.data) ? res.data : [])
     } catch (error) {
       console.log(error)
+      setTasks([])
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [session?.user])
 
   const deleteTask = async (id: string) => {
     try {
@@ -96,21 +136,16 @@ export const GlobalProvider = ({ children }: Props) => {
     }
   }
 
-  const filteredTasks = tasks.filter((task: Todo) =>
-    task?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    task.description && task?.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task =>
+      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [tasks, searchTerm])
 
   const completedTasks = filteredTasks.filter((todo: Todo) => todo.isCompleted === true)
   const importantTasks = filteredTasks.filter((todo: Todo) => todo.isImportant === true)
   const incompleteTasks = filteredTasks.filter((todo: Todo) => todo.isCompleted === false)
-
-  // useEffect(() => {
-  //   if (user) allTasks()
-  // }, [user])
-  useEffect(() => {
-    allTasks()
-  }, [])
 
   return (
     <GlobalContext.Provider
@@ -137,6 +172,7 @@ export const GlobalProvider = ({ children }: Props) => {
         searchTerm,
         setSearchTerm,
         filteredTasks,
+        userImage,
       }}
     >
       <GlobalUpdateContext.Provider value={{
@@ -162,6 +198,7 @@ export const GlobalProvider = ({ children }: Props) => {
         searchTerm,
         setSearchTerm,
         filteredTasks,
+        userImage,
       }}>
         {children}
       </GlobalUpdateContext.Provider>

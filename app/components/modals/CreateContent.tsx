@@ -16,16 +16,13 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
   const [completed, setCompleted] = useState(false)
   const [important, setImportant] = useState(false)
 
-
-  // UseEffect to handle task editing
   useEffect(() => {
     if (taskData) {
-      // Prepopulate the form with task data when editing
       setTitle(taskData.title || '')
       setDescription(taskData.description || '')
       setDate(taskData.date || moment().format("YYYY-MM-DD"))
-      setCompleted(taskData.isCompleted || false)
-      setImportant(taskData.isImportant || false)
+      setCompleted(taskData.isCompleted === true)
+      setImportant(taskData.isImportant === true)
     }
   }, [taskData])
 
@@ -57,7 +54,6 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
     }
   }
 
-
   const handleSubmit = async (e: any) => {
     e.preventDefault()
 
@@ -86,7 +82,6 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
       }
     } catch (error) {
       toast.error("Something went wrong.")
-      console.log(error)
     }
   }
 

@@ -1,20 +1,26 @@
-// import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { withAuth } from "next-auth/middleware"
+import { NextResponse } from "next/server"
 
-// const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)'])
+export default withAuth(
+  function middleware(req) {
+    console.log('Middleware running...')
+    const token = req.nextauth.token
 
-// export default clerkMiddleware((auth, request) => {
-//   if (!isPublicRoute(request)) {
-//     auth().protect()
-//   }
-// })
+    if (!token) {
+      console.log('No token found, redirecting to signin...')
+      return NextResponse.redirect(new URL("/auth/signin", req.url))
+    }
 
-// export const config = {
-//   matcher: [
-//     // Skip Next.js internals and all static files, unless found in search params
-//     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-//     // Always run for API routes
-//     '/(api|trpc)(.*)',
-//   ],
-// }
-const config = () => { }
-export default config
+    console.log('Token found, proceeding...')
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+  }
+)
+
+export const config = {
+  matcher: ["/tasks/:path*"]
+}

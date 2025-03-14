@@ -1,10 +1,7 @@
 "use client"
 
-import Tasks from "./components/tasks/Tasks"
-import { useGlobalState } from "./context/global"
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  const { filteredTasks } = useGlobalState()
-
-  return <Tasks title="All Tasks" tasks={filteredTasks} />
+  redirect("/tasks");
 }
