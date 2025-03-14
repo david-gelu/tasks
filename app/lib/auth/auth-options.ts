@@ -25,11 +25,11 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        try {
-          if (!credentials?.login || !credentials?.password) {
-            throw new Error("Missing credentials")
-          }
+        if (!credentials?.login || !credentials?.password) {
+          throw new Error("Please enter both login and password")
+        }
 
+        try {
           const user = await prisma.user.findFirst({
             where: {
               OR: [
@@ -39,57 +39,70 @@ export const authOptions: AuthOptions = {
             }
           })
 
-          if (!user || !user.password) {
-            console.log('User not found or no password')
-            throw new Error("Invalid credentials")
+          if (!user) {
+            console.log('No user found for login:', credentials.login);
+            throw new Error("Invalid login credentials")
           }
 
-          const passwordMatch = await compare(credentials.password, user.password)
+          if (!user.password) {
+            console.log('User has no password set');
+            throw new Error("Invalid login method")
+          }
 
-          if (!passwordMatch) {
-            console.log('Password does not match')
-            throw new Error("Invalid credentials")
+          const passwordValid = await compare(credentials.password, user.password)
+
+          if (!passwordValid) {
+            console.log('Invalid password for user:', user.email);
+            throw new Error("Invalid login credentials")
           }
 
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
+            name: user.name || user.username,
             username: user.username
           }
         } catch (error) {
-          console.error('Auth error:', error)
-          throw error
+          console.error('Authorization error:', error);
+          throw error;
         }
       }
     })
   ],
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/signin'
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.email = user.email
-        token.name = user.name
-        token.username = user.username
+        token.id = user.id;
+        token.username = user.username;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id
-        session.user.email = token.email as string
-        session.user.name = token.name
-        session.user.username = token.username as string
+        session.user.id = token.id;
+        session.user.username = token.username as string;
       }
-      return session
-    }
-  },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error'
-  },
-  session: {
-    strategy: 'jwt'
+      return session;
+    },
+    async redirect({ url, baseUrl }) {
+      const productionUrl = process.env.NEXTAUTH_URL ?? baseUrl
+      const baseURL = process.env.NODE_ENV === 'production' ? productionUrl : baseUrl
+
+      if (url.startsWith("/")) {
+        return `${baseURL}${url}`
+      } else if (new URL(url).origin === baseURL) {
+        return url
+      }
+      return baseURL
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development'

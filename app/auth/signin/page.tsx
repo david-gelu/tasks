@@ -19,20 +19,29 @@ export default function SignIn() {
     try {
       setLoading(true);
 
+      console.log('Attempting sign in with:', { login: formValues.login });
+
       const res = await signIn('credentials', {
         login: formValues.login,
         password: formValues.password,
         redirect: false,
+        callbackUrl: '/tasks'
       });
 
+      console.log('Sign in response:', res);
+
       if (res?.error) {
-        toast.error('Invalid credentials');
+        toast.error(res.error);
         return;
       }
 
-      router.push('/tasks');
-      router.refresh();
+      if (res?.ok) {
+        toast.success('Signed in successfully!');
+        router.push('/tasks');
+        router.refresh();
+      }
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast.error(error.message || 'Something went wrong');
     } finally {
       setLoading(false);
