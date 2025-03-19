@@ -1,61 +1,27 @@
 'use client'
 
-import { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from "react"
+import { createContext, useState, useContext, useCallback, useMemo } from "react"
 import themes from "./themes"
 import axios from "axios"
-import { Todo } from "@prisma/client"
-import toast from "react-hot-toast"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import Image from 'next/image'
+import { toast } from "react-hot-toast"
+import { Todo, GlobalContextType } from "@/types"
+import { useSession, signOut } from "next-auth/react"
 
-interface GlobalContextType {
-  theme: {
-    name: string;
-    [key: string]: any;
-  };
-  tasks: Todo[];
-  deleteTask: (id: string) => Promise<void>;
-  editTask: (todo: Todo, id: string) => Promise<void>;
-  taskBeingEdited: Partial<Todo> | null;
-  editTaskModal: (task: Todo) => void;
-  createNewTaskModal: () => void;
-  isLoading: boolean;
-  completedTasks: Todo[];
-  importantTasks: Todo[];
-  incompleteTasks: Todo[];
-  updateTask: (todo: Todo) => Promise<void>;
-  modal: boolean;
-  openModal: () => void;
-  closeModal: () => void;
-  allTasks: () => Promise<void>;
-  collapsed: boolean;
-  collapseMenu: () => void;
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  filteredTasks: Todo[];
-  changeThemeColor: (newTheme: string) => void;
-  userImage: string;
-}
-
-export const GlobalContext = createContext<GlobalContextType>({} as GlobalContextType)
-export const GlobalUpdateContext = createContext<GlobalContextType>({} as GlobalContextType)
+const GlobalContext = createContext<GlobalContextType | undefined>(undefined)
 
 interface Props {
-  children: ReactNode
+  children: React.ReactNode
 }
 
-export const GlobalProvider = ({ children }: Props) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-
-  const [selectedTheme, setSelectedTheme] = useState('dark')
-  const [isLoading, setIsLoading] = useState(false)
-  const [tasks, setTasks] = useState<Todo[]>([])
+export function GlobalProvider({ children }: Props) {
   const [modal, setModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const { data: session } = useSession()
+  const [selectedTheme, setSelectedTheme] = useState('dark')
   const [collapsed, setCollapsed] = useState(true)
   const [taskBeingEdited, setTaskBeingEdited] = useState<Partial<Todo> | null>(null)
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("")
+  const [allTasks, setAllTasks] = useState<Todo[]>([])
 
   const theme = themes.find(a => a.name === selectedTheme) || themes[0]
 
@@ -85,26 +51,32 @@ export const GlobalProvider = ({ children }: Props) => {
 
   const collapseMenu = () => { setCollapsed(!collapsed) }
 
-  const allTasks = useCallback(async () => {
-    if (!session?.user) return
-
-    setIsLoading(true)
+  const fetchTasks = useCallback(async () => {
     try {
-      const res = await axios.get("/api/tasks")
-      setTasks(Array.isArray(res.data) ? res.data : [])
+      const response = await fetch('/api/tasks')
+      console.log(` response:`, response)
+      const data = await response.json()
+      console.log(` data:`, data)
+      const mappedData = data.map((task: Todo) => ({
+        ...task,
+        description: task.description ?? undefined,
+        updatedAt: task.updatedAt ?? null
+      }))
+      setAllTasks(mappedData)
     } catch (error) {
       console.log(error)
-      setTasks([])
+      setAllTasks([])
     } finally {
       setIsLoading(false)
     }
-  }, [session?.user])
+  }, [session])
 
   const deleteTask = async (id: string) => {
     try {
       const res = await axios.delete(`/api/tasks/${id}`)
       toast.success("Task deleted")
-      allTasks()
+      console.log(` res:`, res)
+      fetchTasks()
     } catch (error) {
       console.log(error)
       toast.error("Something went wrong")
@@ -115,8 +87,9 @@ export const GlobalProvider = ({ children }: Props) => {
     try {
       const res = await axios.put(`/api/tasks/${id}`, todo)
       toast.success("Task edited")
+      console.log(` res:`, res)
 
-      allTasks()
+      fetchTasks()
     } catch (error) {
       console.log(error)
       toast.error("Something went wrong")
@@ -127,21 +100,30 @@ export const GlobalProvider = ({ children }: Props) => {
     try {
       const res = await axios.put(`/api/tasks`, todo)
 
+      console.log(` res:`, res)
       toast.success("Task updated")
 
-      allTasks()
+      fetchTasks()
     } catch (error) {
       console.log(error)
       toast.error("Something went wrong")
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: true, callbackUrl: '/auth/signout' })
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
   const filteredTasks = useMemo(() => {
-    return tasks.filter(task =>
+    return allTasks.filter(task =>
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description?.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  }, [tasks, searchTerm])
+  }, [allTasks, searchTerm])
 
   const completedTasks = filteredTasks.filter((todo: Todo) => todo.isCompleted === true)
   const importantTasks = filteredTasks.filter((todo: Todo) => todo.isImportant === true)
@@ -152,7 +134,6 @@ export const GlobalProvider = ({ children }: Props) => {
       value={{
         theme,
         changeThemeColor,
-        tasks,
         deleteTask,
         editTask,
         taskBeingEdited,
@@ -167,44 +148,25 @@ export const GlobalProvider = ({ children }: Props) => {
         openModal,
         closeModal,
         allTasks,
+        fetchTasks,
         collapsed,
         collapseMenu,
         searchTerm,
         setSearchTerm,
         filteredTasks,
         userImage,
+        handleLogout,
       }}
     >
-      <GlobalUpdateContext.Provider value={{
-        theme,
-        changeThemeColor,
-        tasks,
-        deleteTask,
-        isLoading,
-        completedTasks,
-        importantTasks,
-        incompleteTasks,
-        updateTask,
-        editTask,
-        taskBeingEdited,
-        editTaskModal,
-        createNewTaskModal,
-        modal,
-        openModal,
-        closeModal,
-        allTasks,
-        collapsed,
-        collapseMenu,
-        searchTerm,
-        setSearchTerm,
-        filteredTasks,
-        userImage,
-      }}>
-        {children}
-      </GlobalUpdateContext.Provider>
+      {children}
     </GlobalContext.Provider>
   )
 }
 
-export const useGlobalState = () => useContext(GlobalContext)
-export const useGlobalUpdate = () => useContext(GlobalUpdateContext)
+export const useGlobalState = () => {
+  const context = useContext(GlobalContext)
+  if (context === undefined) {
+    throw new Error('useGlobalState must be used within a GlobalProvider')
+  }
+  return context
+}

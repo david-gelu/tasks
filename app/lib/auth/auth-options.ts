@@ -71,7 +71,7 @@ export const authOptions: AuthOptions = {
   ],
   pages: {
     signIn: '/auth/signin',
-    error: '/auth/signin'
+    error: '/auth/error'
   },
   session: {
     strategy: 'jwt',
@@ -102,6 +102,11 @@ export const authOptions: AuthOptions = {
         return url
       }
       return baseURL
+
+      // async redirect({ url, baseUrl }) {
+      //   const destination = new URL(url).searchParams.get('callbackUrl') || baseUrl
+      //   return destination
+      // },
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

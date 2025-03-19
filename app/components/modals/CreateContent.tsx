@@ -16,6 +16,8 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
   const [completed, setCompleted] = useState(false)
   const [important, setImportant] = useState(false)
 
+  const { theme, allTasks, closeModal, fetchTasks } = useGlobalState()
+
   useEffect(() => {
     if (taskData) {
       setTitle(taskData.title || '')
@@ -26,7 +28,6 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
     }
   }, [taskData])
 
-  const { theme, allTasks, closeModal } = useGlobalState()
 
   const handleChange = (name: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.target instanceof HTMLInputElement && (name === "completed" || name === "important")) {
@@ -77,7 +78,7 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
         toast.error(res.data.error)
       } else {
         toast.success(taskData?.id ? "Task updated successfully." : "Task created successfully.")
-        allTasks()
+        await fetchTasks()
         closeModal()
       }
     } catch (error) {

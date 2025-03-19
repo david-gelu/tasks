@@ -23,7 +23,7 @@ interface ExtendedUser {
 
 function Sidebar() {
   const { data: session } = useSession()
-  const { theme, changeThemeColor, collapsed, collapseMenu } = useGlobalState()
+  const { theme, changeThemeColor, collapsed, collapseMenu, handleLogout } = useGlobalState()
   const [showDropdown, setShowDropdown] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
 

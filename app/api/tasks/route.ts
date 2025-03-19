@@ -55,8 +55,8 @@ export async function POST(req: Request) {
         date,
         isImportant,
         userId: session.user.id,
-        createdAt: new Date(), // Explicitly set createdAt
-        updatedAt: new Date()  // Explicitly set updatedAt
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     })
 

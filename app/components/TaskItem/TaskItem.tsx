@@ -1,4 +1,5 @@
 "use client"
+import React from 'react'
 import { useGlobalState } from "@/app/context/global"
 import formatDate from "@/app/utils/formatDate"
 import { edit, trash } from "@/app/utils/Icons"
@@ -11,16 +12,34 @@ import { toast } from "react-hot-toast"
 import axios from "axios"
 
 interface Props {
+  id: string
   title: string
-  description: string
+  description?: string
   date: string
   isCompleted: boolean
-  id: string
-  isImportant?: boolean
+  isImportant: boolean
+  createdAt: Date
+  updatedAt: Date | null
+  userId: string
 }
 
-function TaskItem({ title, description, date, isCompleted, id, isImportant = false }: Props) {
-  const { theme, modal, openModal, taskBeingEdited, editTaskModal, allTasks } = useGlobalState()
+interface StyledTaskProps {
+  $important: boolean;
+  $completed: boolean;
+}
+
+export default function TaskItem({
+  id,
+  title,
+  description = '',
+  date,
+  isCompleted,
+  isImportant,
+  createdAt,
+  updatedAt,
+  userId
+}: Props) {
+  const { theme, modal, openModal, taskBeingEdited, editTaskModal, fetchTasks } = useGlobalState()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -37,7 +56,7 @@ function TaskItem({ title, description, date, isCompleted, id, isImportant = fal
       }
 
       toast.success('Task deleted successfully')
-      allTasks()
+      await fetchTasks()
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Error deleting task')
     } finally {
@@ -59,7 +78,7 @@ function TaskItem({ title, description, date, isCompleted, id, isImportant = fal
         return
       }
 
-      await allTasks()
+      await fetchTasks()
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Error updating task')
     } finally {
@@ -75,17 +94,17 @@ function TaskItem({ title, description, date, isCompleted, id, isImportant = fal
       date,
       isCompleted,
       isImportant,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: ''
+      createdAt,
+      updatedAt,
+      userId
     })
   }
 
   return (
     <TaskItemStyled
       theme={theme}
-      important={Boolean(isImportant)}
-      completed={Boolean(isCompleted)}
+      $important={isImportant}
+      $completed={isCompleted}
     >
       <strong>{title}</strong>
       <span>{description}</span>
@@ -118,29 +137,29 @@ function TaskItem({ title, description, date, isCompleted, id, isImportant = fal
   )
 }
 
-const TaskItemStyled = styled.div<{ important: boolean; completed: boolean }>`
+const TaskItemStyled = styled.div<StyledTaskProps>`
   padding: 1rem;
   border-radius: 1rem;
   background-color: ${({ theme }) => theme.colorBg};
-  border: 2px solid ${({ theme, important, completed }) => {
-    if (completed) return theme.colorGreenDark;
-    if (important) return theme.colorDanger;
+  border: 2px solid ${({ theme, $important, $completed }) => {
+    if ($completed) return theme.colorGreenDark;
+    if ($important) return theme.colorDanger;
     return theme.colorIcons;
   }};
-  box-shadow: ${({ theme, important }) =>
-    important ? `0 0 5px ${theme.colorDanger}` : 'none'};
+  box-shadow: ${({ theme, $important }) =>
+    $important ? `0 0 5px ${theme.colorDanger}` : 'none'};
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  opacity: ${({ completed }) => completed ? 0.7 : 1};
+  opacity: ${({ $completed }) => $completed ? 0.7 : 1};
   position: relative;
   transition: all 0.3s ease;
 
   strong {
-    color: ${({ theme, completed, important }) => {
-    if (completed) return theme.colorGrey3;
-    if (important) return theme.colorDanger;
+    color: ${({ theme, $completed, $important }) => {
+    if ($completed) return theme.colorGrey3;
+    if ($important) return theme.colorDanger;
     return theme.colorGreenDark;
   }};
     font-size: 1.2rem;
@@ -209,4 +228,3 @@ const TaskItemStyled = styled.div<{ important: boolean; completed: boolean }>`
   }
 `;
 
-export default TaskItem;

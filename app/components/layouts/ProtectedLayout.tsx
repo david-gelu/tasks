@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function ProtectedLayout({
@@ -11,6 +11,7 @@ export default function ProtectedLayout({
 }) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (status === 'loading') return
@@ -18,7 +19,7 @@ export default function ProtectedLayout({
     if (!session) {
       router.push('/auth/signin')
     }
-  }, [session, status, router])
+  }, [session, status, router, pathname])
 
   if (status === 'loading') {
     return (

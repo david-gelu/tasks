@@ -2,33 +2,34 @@
 
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
+import { useGlobalState } from '@/app/context/global';
 
 export default function SignIn() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/tasks';
   const [loading, setLoading] = useState(false);
   const [formValues, setFormValues] = useState({
     login: '',
     password: '',
   });
-
+  const { fetchTasks } = useGlobalState()
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setLoading(true);
 
-      console.log('Attempting sign in with:', { login: formValues.login });
 
       const res = await signIn('credentials', {
         login: formValues.login,
         password: formValues.password,
         redirect: false,
-        callbackUrl: '/tasks'
+        callbackUrl
       });
 
-      console.log('Sign in response:', res);
 
       if (res?.error) {
         toast.error(res.error);
@@ -37,8 +38,9 @@ export default function SignIn() {
 
       if (res?.ok) {
         toast.success('Signed in successfully!');
-        router.push('/tasks');
+        router.push(callbackUrl);
         router.refresh();
+        await fetchTasks()
       }
     } catch (error: any) {
       console.error('Sign in error:', error);

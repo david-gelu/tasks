@@ -1,4 +1,36 @@
-const themes = [
+export interface Theme {
+  name: string
+  colorBg: string
+  colorBg2: string
+  colorSuccess: string
+  colorWarning: string
+  colorDanger: string
+  colorGradient: string
+  colorGreenDark: string
+  colorGreenLight: string
+  activeNavLink: string
+  activeNavLinkHover: string
+  colorPrimary: string
+  colorGreyDark: string
+  color1: string
+  color2: string
+  btnColor1: string
+  colorGrey2: string
+  colorGrey3: string
+  colorGrey5: string
+  colorWhite: string
+  colorPrimaryGreen?: string
+  borderColor: string
+  borderColor2: string
+  shadow7: string
+  sidebarWidth: string
+  colorIcons: string
+  colorIcons2: string
+  borderRadiusMd?: string
+  borderRadiusMd2?: string
+}
+
+const themes: Theme[] = [
   {
     name: "dark",
     colorBg: "var(--bg-color)",
@@ -59,4 +91,5 @@ const themes = [
     colorIcons2: "var(--link-color)",
   },
 ];
+
 export default themes;
