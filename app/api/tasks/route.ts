@@ -7,8 +7,8 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!session?.user) {
+      return new NextResponse("Unauthorized", { status: 401 })
     }
 
     const tasks = await prisma.todo.findMany({
@@ -32,10 +32,9 @@ export async function GET() {
     })
 
     return NextResponse.json(tasks)
-
   } catch (error) {
-    console.error('Error fetching tasks:', error)
-    return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 })
+    console.error('GET /api/tasks error:', error)
+    return new NextResponse("Internal Error", { status: 500 })
   }
 }
 

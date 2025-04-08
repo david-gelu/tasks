@@ -70,7 +70,8 @@ const DropdownStyled = styled.div`
   background-color: ${({ theme }) => theme.colorBg2};
   border: 2px solid ${({ theme }) => theme.colorGreenDark};
   border-radius: 1em;
-  max-width: 200px;
+  max-width: 20dvw;
+  width: max-content;
   z-index: 10000;
   overflow: hidden;
   margin-top: 1rem;

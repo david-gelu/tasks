@@ -8,9 +8,21 @@ export default withAuth(
     const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
     const isPublicPage = ['/'].includes(req.nextUrl.pathname)
 
+    // Store the current URL before redirection
+    const currentPath = req.nextUrl.pathname
+    const callbackUrl = req.nextUrl.searchParams.get('callbackUrl') || currentPath
+
+    // Allow API and public assets
+    if (req.nextUrl.pathname.startsWith('/api') ||
+      req.nextUrl.pathname.startsWith('/_next') ||
+      req.nextUrl.pathname.includes('favicon.ico')) {
+      return NextResponse.next()
+    }
+
     // Redirect authenticated users away from auth pages
     if (isAuthPage && isAuthenticated) {
-      return NextResponse.redirect(new URL('/tasks', req.url))
+      const redirectUrl = new URL(callbackUrl, req.url)
+      return NextResponse.redirect(redirectUrl)
     }
 
     // Allow access to public pages
@@ -18,29 +30,24 @@ export default withAuth(
       return NextResponse.next()
     }
 
-    // Redirect unauthenticated users to login
+    // Redirect unauthenticated users to login with callback URL
     if (!isAuthenticated && !isAuthPage) {
-      return NextResponse.redirect(new URL('/auth/signin', req.url))
+      const signInUrl = new URL('/auth/signin', req.url)
+      signInUrl.searchParams.set('callbackUrl', currentPath)
+      return NextResponse.redirect(signInUrl)
     }
 
     return NextResponse.next()
   },
   {
     callbacks: {
-      authorized: ({ token }) => true // Let the middleware function handle the auth logic
+      authorized: ({ token }) => true
     },
   }
 )
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images (public images)
-     */
     '/((?!_next/static|_next/image|favicon.ico|images/).*)'
   ]
 }

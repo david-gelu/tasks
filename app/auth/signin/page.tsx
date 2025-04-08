@@ -1,72 +1,66 @@
-'use client';
+'use client'
 
-import { signIn } from 'next-auth/react';
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
-import Link from 'next/link';
-import { useGlobalState } from '@/app/context/global';
+import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'react-hot-toast'
+import Link from 'next/link'
+import { useGlobalState } from '@/app/context/global'
+import Button from '@/app/components/button/Button'
 
 export default function SignIn() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/tasks';
-  const [loading, setLoading] = useState(false);
-  const [formValues, setFormValues] = useState({
-    login: '',
-    password: '',
-  });
-  const { fetchTasks } = useGlobalState()
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/tasks'
+  const decodedCallbackUrl = decodeURIComponent(callbackUrl)
+
+  const { theme, fetchTasks } = useGlobalState()
+
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
+
     try {
-      setLoading(true);
-
-
+      const formData = new FormData(e.currentTarget)
       const res = await signIn('credentials', {
-        login: formValues.login,
-        password: formValues.password,
+        login: formData.get('login'),
+        password: formData.get('password'),
         redirect: false,
-        callbackUrl
-      });
-
+        callbackUrl: decodedCallbackUrl,
+      })
 
       if (res?.error) {
-        toast.error(res.error);
-        return;
+        toast.error(res.error)
+        return
       }
 
       if (res?.ok) {
-        toast.success('Signed in successfully!');
-        router.push(callbackUrl);
-        router.refresh();
         await fetchTasks()
+        // Use the decoded callback URL for navigation
+        window.location.href = decodedCallbackUrl
       }
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error(error.message || 'Something went wrong');
+    } catch (error) {
+      toast.error('Something went wrong')
     } finally {
-      setLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="bg-secondary p-8 rounded-lg shadow-md w-96">
         <h1 className="text-2xl font-bold mb-6">Sign In</h1>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="login" className="block mb-2">
               Email or Username
             </label>
             <input
               id="login"
+              name="login"
               type="text"
               className="w-full p-2 border rounded "
-              value={formValues.login}
-              onChange={(e) =>
-                setFormValues({ ...formValues, login: e.target.value })
-              }
               placeholder="Enter your email or username"
               required
             />
@@ -77,25 +71,24 @@ export default function SignIn() {
             </label>
             <input
               id="password"
+              name="password"
               type="password"
               className="w-full p-2 border rounded "
-              value={formValues.password}
-              onChange={(e) =>
-                setFormValues({ ...formValues, password: e.target.value })
-              }
               placeholder="Enter your password"
               required
             />
           </div>
-          <button
+          <Button
             type="submit"
-            className="w-full bg-accent text-white p-2 rounded hover:bg-accent/80"
-            disabled={loading}
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
+            name={isLoading ? 'Signing In...' : 'Sign In'}
+            padding={"0.5em 1em"}
+            borderRad={"0.8rem"}
+            fs={"1rem"}
+            background={theme.colorGreenLight}
+            width='100%'
+          />
         </form>
-        <div className="mt-4 space-y-2">
+        {/* <div className="mt-4 space-y-2">
           <button
             onClick={() => signIn('google')}
             className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
@@ -108,7 +101,7 @@ export default function SignIn() {
           >
             Sign in with Facebook
           </button>
-        </div>
+        </div> */}
         <p className="mt-4 text-center">
           Don't have an account?{' '}
           <Link href="/auth/signup" className="text-accent hover:underline">
@@ -117,5 +110,5 @@ export default function SignIn() {
         </p>
       </div>
     </div>
-  );
+  )
 }

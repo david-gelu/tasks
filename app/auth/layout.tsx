@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function AuthLayout({
@@ -11,12 +11,14 @@ export default function AuthLayout({
 }) {
   const { data: session, status } = useSession()
   const router = useRouter()
-
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/tasks'
+  const decodedCallbackUrl = decodeURIComponent(callbackUrl)
   useEffect(() => {
     if (status === 'loading') return
 
     if (session) {
-      router.push('/tasks')
+      router.push(decodedCallbackUrl)
     }
   }, [session, status, router])
 

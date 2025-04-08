@@ -16,7 +16,7 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
   const [completed, setCompleted] = useState(false)
   const [important, setImportant] = useState(false)
 
-  const { theme, allTasks, closeModal, fetchTasks } = useGlobalState()
+  const { theme, closeModal, fetchTasks } = useGlobalState()
 
   useEffect(() => {
     if (taskData) {

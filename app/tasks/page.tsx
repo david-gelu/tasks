@@ -2,26 +2,37 @@
 
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useGlobalState } from '@/app/context/global'
 import Tasks from '@/app/components/tasks/Tasks'
-import { useGlobalState } from "@/app/context/global"
 
 export default function TasksPage() {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const { fetchTasks, allTasks, isLoading } = useGlobalState()
+  const [initialFetchDone, setInitialFetchDone] = useState(false)
+
+
 
   useEffect(() => {
-    const loadData = async () => {
-      if (status === 'authenticated' && session?.user) {
-        await fetchTasks()
+    const loadTasks = async () => {
+      if (status === 'authenticated' && session?.user && !initialFetchDone) {
+        try {
+          await fetchTasks()
+          setInitialFetchDone(true)
+        } catch (error) {
+          console.error('Error fetching tasks:', error)
+        }
       }
     }
 
-    loadData()
-  }, [status, session, fetchTasks])
+    loadTasks()
+  }, [status, session, fetchTasks, initialFetchDone])
 
-  const filteredTasks = allTasks.filter(task => {
+  // Ensure allTasks is an array before filtering
+  const tasks = Array.isArray(allTasks) ? allTasks : []
+
+  const filteredTasks = tasks.filter(task => {
     switch (pathname) {
       case '/incomplete':
         return !task.isCompleted
