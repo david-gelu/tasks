@@ -1,28 +1,38 @@
 "use client"
-import React from "react"
+import React, { useState } from "react"
 import styled from "styled-components"
 import Image from "next/image"
+import { useSession } from "next-auth/react"
 
 import menu from "@/app/utils/menu"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { arrowLeft, bars, logout, moon, sun } from "@/app/utils/Icons"
+import { arrowLeft, bars, moon, sun } from "@/app/utils/Icons"
 // import { SignInButton, SignedOut, UserButton, useClerk, useUser } from "@clerk/nextjs"
 import { useGlobalState } from "@/app/context/global"
-import Button from "../button/Button"
-import Loading from "../loading/Loading"
+import UserDropdown from '../dropdown/UserDropdown'
+import EditProfileModal from "../modals/EditProfileModal"
+
+interface ExtendedUser {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  username?: string | null
+}
 
 function Sidebar() {
-  const { theme, changeThemeColor, collapsed, collapseMenu } = useGlobalState()
-  // const { signOut } = useClerk()
+  const { data: session } = useSession()
+  const { theme, changeThemeColor, collapsed, collapseMenu, handleLogout } = useGlobalState()
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
-  // const { user, isSignedIn, isLoaded } = useUser()
-
-  const { firstName, lastName, imageUrl } = {
-    firstName: "",
-    lastName: "",
-    imageUrl: "",
-  }
+  // Get user info from session
+  const userImage = session?.user?.image || '/images/user-logo.png'
+  const userName = (session?.user as ExtendedUser)?.username ||
+    session?.user?.name ||
+    'User'
+  const [firstName, lastName] = userName.split(' ')
 
   const router = useRouter()
   const pathname = usePathname()
@@ -30,9 +40,15 @@ function Sidebar() {
   const handleClick = (link: string) => {
     router.push(link)
   }
-  // if (!isSignedIn) return <></>
 
-  // if (!isLoaded) return <Loading />
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown)
+  }
+
+  const handleEditProfile = () => {
+    setShowDropdown(false)
+    setShowEditModal(true)
+  }
 
   return (
     <SidebarStyled className="fancy-border" theme={theme} $collapsed={collapsed}>
@@ -40,17 +56,36 @@ function Sidebar() {
         {collapsed ? bars : arrowLeft}
       </button>
       <div className="profile">
-        <div className="profile-overlay"></div>
-        <div className="image">
-          {imageUrl ? <div className="user-btn absolute z-20 top-0 w-full h-full">
-            {/* <UserButton /> */}
-          </div>
-            : <Image width={70} height={70} src={'/user-logo.png'} alt="profile" />}
+        {showDropdown && (
+          <UserDropdown
+            onClose={() => setShowDropdown(false)}
+            onEditProfile={handleEditProfile}
+            userName={userName}
+            userEmail={session?.user?.email}
+          />
+        )}
+        <div className="image" onClick={toggleDropdown}>
+          <Image
+            width={70}
+            height={70}
+            src={userImage}
+            alt="profile"
+            priority
+            className="rounded-full cursor-pointer"
+          />
+
         </div>
         <h1 className="capitalize">
           {firstName} {lastName}
         </h1>
       </div>
+      {showEditModal && (
+        <EditProfileModal
+          onClose={() => setShowEditModal(false)}
+          currentName={userName}
+          currentEmail={session?.user?.email}
+        />
+      )}
       <ul className="nav-items">
         <li
           className={`nav-item`} style={{ color: theme.color1, zIndex: 2 }}
@@ -139,7 +174,6 @@ const SidebarStyled = styled.nav<{ $collapsed: boolean }>`
     padding: 1em 0.8em;
     position: relative;
     border-radius: 1em;
-    /* cursor: pointer; */
     font-weight: 500;
     color: ${({ theme }) => theme.colorGreenDark};
     display: flex;
@@ -181,6 +215,7 @@ const SidebarStyled = styled.nav<{ $collapsed: boolean }>`
       overflow: hidden;
       transition: all 0.5s ease;
       border-radius: 100%;
+      cursor: pointer;
 
       width: 70px;
       height: 70px;
@@ -188,6 +223,12 @@ const SidebarStyled = styled.nav<{ $collapsed: boolean }>`
       img {
         border-radius: 100%;
         transition: all 0.5s ease;
+      }
+
+      .dropdown-container {
+        position: absolute;
+        width: max-content;
+        z-index: 1000;
       }
     }
 
@@ -279,9 +320,9 @@ const SidebarStyled = styled.nav<{ $collapsed: boolean }>`
     margin-right: 0.1em;
   }
 
-  > button {
-    margin: 1.5em;
-  }
+> button {
+  margin: 1.5em;
+}
 `;
 
-export default Sidebar;
+export default Sidebar

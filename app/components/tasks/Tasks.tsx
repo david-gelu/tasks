@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useGlobalState } from "@/app/context/global"
 import CreateContent from "../modals/CreateContent"
@@ -6,18 +6,19 @@ import styled from "styled-components"
 import TaskItem from "../TaskItem/TaskItem"
 import { add, plus } from "@/app/utils/Icons"
 import Modal from "../modals/Modal"
-import Loading from "../loading/Loading"
-import { Todo } from "@prisma/client"
+import { Todo } from "@/types"
 
-interface Props {
-  title: string
+interface TasksProps {
+  title?: string
   tasks: Todo[]
 }
 
-function Tasks({ title, tasks }: Props) {
-  const { theme, isLoading, openModal, modal, searchTerm, setSearchTerm, filteredTasks } = useGlobalState()
+export default function Tasks({ title, tasks }: TasksProps) {
+  const { theme, isLoading, openModal, modal, searchTerm, setSearchTerm } = useGlobalState()
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => { setSearchTerm(e.target.value) }
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  }
 
   return (
     <TaskStyled theme={theme}>
@@ -33,24 +34,21 @@ function Tasks({ title, tasks }: Props) {
         />
         <button className="btn-rounded" onClick={openModal}>{plus}</button>
       </div>
-      {
-        <div className="tasks grid">
-          {tasks.length > 0 && tasks.map((task: any) => (
+      <div className="tasks grid">
+        {tasks.length === 0 ? (
+          <p className="text-center text-gray-500 mt-4">No tasks found</p>
+        ) : (
+          tasks.map((task) => (
             <TaskItem
               key={task.id}
-              title={task.title}
-              description={task.description}
-              date={task.date}
-              isCompleted={task.isCompleted}
-              id={task.id}
+              {...task}
+              description={task.description ?? ''}
+              updatedAt={task.updatedAt ?? new Date()}
             />
-          ))}
-          <button className="create-task" onClick={openModal}>
-            {add} Add New Task
-          </button>
-        </div>
-      }
-    </TaskStyled >
+          ))
+        )}
+      </div>
+    </TaskStyled>
   )
 }
 
@@ -148,5 +146,3 @@ const TaskStyled = styled.main`
     outline: none;
   }
 `;
-
-export default Tasks;

@@ -1,70 +1,171 @@
 "use client"
+import React from 'react'
 import { useGlobalState } from "@/app/context/global"
 import formatDate from "@/app/utils/formatDate"
 import { edit, trash } from "@/app/utils/Icons"
-import React from "react"
+import { useState } from "react"
 import styled from "styled-components"
 import Modal from "../modals/Modal"
 import CreateContent from "../modals/CreateContent"
 import { Todo } from "@prisma/client"
+import { toast } from "react-hot-toast"
+import axios from "axios"
 
 interface Props {
+  id: string
   title: string
-  description: string
+  description?: string
   date: string
   isCompleted: boolean
-  id: string
+  isImportant: boolean
+  createdAt: Date
+  updatedAt: Date | null
+  userId: string
 }
 
-function TaskItem({ title, description, date, isCompleted, id }: Props) {
-  const { theme, deleteTask, updateTask, modal, openModal, taskBeingEdited, editTaskModal, importantTasks } = useGlobalState()
+interface StyledTaskProps {
+  $important: boolean;
+  $completed: boolean;
+}
+
+export default function TaskItem({
+  id,
+  title,
+  description = '',
+  date,
+  isCompleted,
+  isImportant,
+  createdAt,
+  updatedAt,
+  userId
+}: Props) {
+  const { theme, modal, openModal, taskBeingEdited, editTaskModal, fetchTasks } = useGlobalState()
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+
+  const handleDelete = async () => {
+    if (isDeleting) return
+
+    try {
+      setIsDeleting(true)
+      const res = await axios.delete(`/api/tasks/${id}`)
+
+      if (res.status === 429) {
+        toast.error('Please wait, delete in progress')
+        return
+      }
+
+      toast.success('Task deleted successfully')
+      await fetchTasks()
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Error deleting task')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleUpdate = async (updateData: Partial<Todo>) => {
+    if (isUpdating) return
+
+    try {
+      setIsUpdating(true)
+      const res = await axios.put(`/api/tasks/${id}`, {
+        taskData: updateData
+      })
+
+      if (res.status === 429) {
+        toast.error('Please wait, update in progress')
+        return
+      }
+
+      await fetchTasks()
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Error updating task')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleEditClick = () => {
+    editTaskModal({
+      id,
+      title,
+      description,
+      date,
+      isCompleted,
+      isImportant,
+      createdAt,
+      updatedAt,
+      userId
+    })
+  }
+
   return (
-    <TaskItemStyled theme={theme} important={importantTasks.find((task: Todo) => task.id === id && task.isImportant)}>
+    <TaskItemStyled
+      theme={theme}
+      $important={isImportant}
+      $completed={isCompleted}
+    >
       <strong>{title}</strong>
       <span>{description}</span>
       <span className="date">{formatDate(date)}</span>
       <div className="task-footer">
-        {isCompleted ? (
-          <button
-            className="completed"
-            onClick={() => {
-              const task = { id, isCompleted: !isCompleted }
-              updateTask(task)
-            }}
-          >
-            Completed
-          </button>
-        ) : (
-          <button
-            className="incomplete"
-            onClick={() => {
-              const task = { id, isCompleted: !isCompleted }
-              updateTask(task)
-            }}
-          >
-            Incomplete
-          </button>
-        )}
-        <button className="edit" onClick={() => editTaskModal({ title, description, date, isCompleted, id })}>{edit}</button>
-        <button className="delete" onClick={() => deleteTask(id)}>{trash}</button>
+        <button
+          className={`status-btn ${isCompleted ? 'completed' : 'incomplete'} ${isUpdating ? 'disabled' : ''}`}
+          onClick={() => handleUpdate({ isCompleted: !isCompleted })}
+          disabled={isUpdating}
+        >
+          {isCompleted ? 'Completed' : 'Incomplete'}
+        </button>
+        <button
+          className={`edit ${isUpdating ? 'disabled' : ''}`}
+          onClick={handleEditClick}
+          disabled={isUpdating}
+        >
+          {edit}
+        </button>
+        <button
+          className={`delete ${isDeleting ? 'disabled' : ''}`}
+          onClick={handleDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? '...' : trash}
+        </button>
       </div>
-      {modal &&
-        <Modal content={taskBeingEdited ? <CreateContent taskData={taskBeingEdited} /> : <CreateContent />} />
-      }
+      {modal && taskBeingEdited && <Modal content={<CreateContent taskData={taskBeingEdited} />} />}
     </TaskItemStyled>
   )
 }
 
-const TaskItemStyled = styled.div<{ important: boolean }>`
+const TaskItemStyled = styled.div<StyledTaskProps>`
   padding: 1rem;
   border-radius: 1rem;
   background-color: ${({ theme }) => theme.colorBg};
-  /* box-shadow: ${({ theme }) => theme.shadow7}; */
-  border: 2px solid ${({ theme, important }) => important ? theme.colorDanger : theme.colorIcons};
-  width:100%;
+  border: 2px solid ${({ theme, $important, $completed }) => {
+    if ($completed) return theme.colorGreenDark;
+    if ($important) return theme.colorDanger;
+    return theme.colorIcons;
+  }};
+  box-shadow: ${({ theme, $important }) =>
+    $important ? `0 0 5px ${theme.colorDanger}` : 'none'};
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  opacity: ${({ $completed }) => $completed ? 0.7 : 1};
+  position: relative;
+  transition: all 0.3s ease;
+
+  strong {
+    color: ${({ theme, $completed, $important }) => {
+    if ($completed) return theme.colorGrey3;
+    if ($important) return theme.colorDanger;
+    return theme.colorGreenDark;
+  }};
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
   .date {
     margin-top: auto;
   }
@@ -85,24 +186,45 @@ const TaskItemStyled = styled.div<{ important: boolean }>`
         font-size: 1rem;
         color: ${({ theme }) => theme.color1};
       }
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
-    .edit {
-      margin-left: auto;
-    }
-    .completed,
-    .incomplete {
+    .status-btn {
       display: inline-block;
       padding: 0.2em 1em;
-      background: ${({ theme }) => theme.colorDanger};
       border-radius: 10px;
       font-size: 0.8rem;
+      transition: all 0.3s ease;
+
+      &.completed {
+        background: ${({ theme }) => theme.colorGreenDark};
+        color: ${({ theme }) => theme.colorWhite};
+      }
+
+      &.incomplete {
+        background: ${({ theme }) => theme.colorDanger};
+        color: ${({ theme }) => theme.colorWhite};
+      }
+
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
-    .completed {
-      background: ${({ theme }) => theme.colorGreenDark} !important;
-color:${({ theme }) => theme.colorWhite} !important;
-    
+    .edit, .delete {
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+  .delete-btn {
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 `;
 
-export default TaskItem;

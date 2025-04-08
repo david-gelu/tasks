@@ -16,6 +16,8 @@ interface Props {
   type?: "submit" | "button" | "reset" | undefined;
   border?: string;
   color?: string;
+  width?: string;
+  textAlign?: "left" | "center" | "right";
 }
 
 function Button({
@@ -30,6 +32,8 @@ function Button({
   type,
   border,
   color,
+  width,
+  textAlign
 }: Props) {
   const { theme } = useGlobalState();
 
@@ -44,6 +48,8 @@ function Button({
         fontSize: fs,
         border: border || "none",
         color: color || theme.btnColor1,
+        width: width || "auto",
+        textAlign: textAlign || "center",
       }}
       theme={theme}
       onClick={click}
@@ -58,6 +64,7 @@ const ButtonStyled = styled.button`
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   color: ${({ theme }) => theme.btnColor1};
   z-index: 5;
   cursor: pointer;

@@ -1,20 +1,53 @@
-// import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { withAuth } from "next-auth/middleware"
+import { NextResponse } from "next/server"
 
-// const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)'])
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token
+    const isAuthenticated = !!token
+    const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
+    const isPublicPage = ['/'].includes(req.nextUrl.pathname)
 
-// export default clerkMiddleware((auth, request) => {
-//   if (!isPublicRoute(request)) {
-//     auth().protect()
-//   }
-// })
+    // Store the current URL before redirection
+    const currentPath = req.nextUrl.pathname
+    const callbackUrl = req.nextUrl.searchParams.get('callbackUrl') || currentPath
 
-// export const config = {
-//   matcher: [
-//     // Skip Next.js internals and all static files, unless found in search params
-//     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-//     // Always run for API routes
-//     '/(api|trpc)(.*)',
-//   ],
-// }
-const config = () => { }
-export default config
+    // Allow API and public assets
+    if (req.nextUrl.pathname.startsWith('/api') ||
+      req.nextUrl.pathname.startsWith('/_next') ||
+      req.nextUrl.pathname.includes('favicon.ico')) {
+      return NextResponse.next()
+    }
+
+    // Redirect authenticated users away from auth pages
+    if (isAuthPage && isAuthenticated) {
+      const redirectUrl = new URL(callbackUrl, req.url)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Allow access to public pages
+    if (isPublicPage) {
+      return NextResponse.next()
+    }
+
+    // Redirect unauthenticated users to login with callback URL
+    if (!isAuthenticated && !isAuthPage) {
+      const signInUrl = new URL('/auth/signin', req.url)
+      signInUrl.searchParams.set('callbackUrl', currentPath)
+      return NextResponse.redirect(signInUrl)
+    }
+
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => true
+    },
+  }
+)
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|images/).*)'
+  ]
+}

@@ -16,20 +16,18 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
   const [completed, setCompleted] = useState(false)
   const [important, setImportant] = useState(false)
 
+  const { theme, closeModal, fetchTasks } = useGlobalState()
 
-  // UseEffect to handle task editing
   useEffect(() => {
     if (taskData) {
-      // Prepopulate the form with task data when editing
       setTitle(taskData.title || '')
       setDescription(taskData.description || '')
       setDate(taskData.date || moment().format("YYYY-MM-DD"))
-      setCompleted(taskData.isCompleted || false)
-      setImportant(taskData.isImportant || false)
+      setCompleted(taskData.isCompleted === true)
+      setImportant(taskData.isImportant === true)
     }
   }, [taskData])
 
-  const { theme, allTasks, closeModal } = useGlobalState()
 
   const handleChange = (name: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.target instanceof HTMLInputElement && (name === "completed" || name === "important")) {
@@ -57,7 +55,6 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
     }
   }
 
-
   const handleSubmit = async (e: any) => {
     e.preventDefault()
 
@@ -81,12 +78,11 @@ function CreateContent({ taskData }: { taskData?: Partial<Todo> }) {
         toast.error(res.data.error)
       } else {
         toast.success(taskData?.id ? "Task updated successfully." : "Task created successfully.")
-        allTasks()
+        await fetchTasks()
         closeModal()
       }
     } catch (error) {
       toast.error("Something went wrong.")
-      console.log(error)
     }
   }
 

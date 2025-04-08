@@ -1,12 +1,23 @@
-"use client"
-import React from "react"
-import { useGlobalState } from "../context/global"
-import Tasks from "../components/tasks/Tasks"
+'use client'
 
-function page() {
-  const { completedTasks } = useGlobalState()
+import { useGlobalState } from '@/app/context/global'
+import Tasks from '@/app/components/tasks/Tasks'
+import { useEffect } from 'react'
 
-  return <Tasks title="Completed Tasks" tasks={completedTasks} />
+export default function CompletedPage() {
+  const { allTasks, fetchTasks } = useGlobalState()
+
+  useEffect(() => {
+    fetchTasks()
+  }, [fetchTasks])
+
+  const completedTasks = Array.isArray(allTasks)
+    ? allTasks.filter(task => task.isCompleted)
+    : []
+
+  return (
+    <div>
+      <Tasks title="Completed Tasks" tasks={completedTasks} />
+    </div>
+  )
 }
-
-export default page
