@@ -36,7 +36,7 @@ export default function RootLayout({
           color="#27AE60"
           easing="cubic-bezier(0.53,0.21,0,1)"
         />
-        <SessionProvider refetchInterval={0}>
+        <SessionProvider refetchInterval={60 * 24} refetchOnWindowFocus={true}>
           <AuthContext>
             <ContextProviders>
               <GlobalStyles>

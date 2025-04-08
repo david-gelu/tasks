@@ -145,11 +145,12 @@ const ModalStyled = styled.div`
   z-index: 1000;
 
   .modal-content {
-    background: ${props => props.theme.colorBg2};
+    background: ${({ theme }) => theme.colorBg2};
     padding: 2rem;
     border-radius: 1rem;
     width: 90%;
-    max-width: 500px;
+    max-width: 60%;
+    box-shadow:  ${({ theme }) => `0 0px 3px ${theme.color1}`};
 
     h2 {
       color: ${props => props.theme.colorGreenDark};

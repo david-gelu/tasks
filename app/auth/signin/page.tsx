@@ -49,7 +49,14 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-secondary p-8 rounded-lg shadow-md w-96">
+      <div className="shadow-md "
+        style={{
+          background: theme.colorBg2,
+          padding: '2rem',
+          borderRadius: '1rem',
+          minWidth: '60%',
+          boxShadow: ` 0 0px 3px ${theme.color1}`
+        }}>
         <h1 className="text-2xl font-bold mb-6">Sign In</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -109,6 +116,6 @@ export default function SignIn() {
           </Link>
         </p>
       </div>
-    </div>
+    </div >
   )
 }
