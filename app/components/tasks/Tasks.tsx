@@ -25,6 +25,7 @@ export default function Tasks({ title, tasks }: TasksProps) {
       {modal && <Modal content={<CreateContent />} />}
       <div className="tasks-header">
         <h1>{title}</h1>
+        {/* <div className="flex gap-3"> */}
         <input
           type="text"
           placeholder="Search tasks..."
@@ -33,6 +34,7 @@ export default function Tasks({ title, tasks }: TasksProps) {
           className="search-input"
         />
         <button className="btn-rounded" onClick={openModal}>{plus}</button>
+        {/* </div> */}
       </div>
       <div className="tasks grid">
         {tasks.length === 0 ? (
@@ -70,6 +72,7 @@ const TaskStyled = styled.main`
   }
   .tasks-header{
     display: flex;
+    flex-wrap: wrap;
     align-items:center;
     justify-content:space-between;
     gap: 1.5em;
@@ -105,7 +108,7 @@ const TaskStyled = styled.main`
     align-items: center;
     justify-content: center;
     @media screen and (max-width: 768px) {
-      top: 2.5em;
+      top: 2em;
       right: 1.5em;
     }
   }
@@ -137,8 +140,12 @@ const TaskStyled = styled.main`
     }
   }
   .search-input {
-    max-width: 20em;
+    width: min(80vw, 20em);
+    max-width: max(80vw, 20em);
+    /* @media screen and (min-width: 768px) {
+      } */
     margin-right: 3.5em;
+  
     padding: 0.35em 1em;
     border-radius: 0.5em;
     border: 2px solid ${({ theme }) => theme.colorIcons};

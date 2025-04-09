@@ -66,16 +66,18 @@ const DropdownStyled = styled.div`
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-25%);
   background-color: ${({ theme }) => theme.colorBg2};
   border: 2px solid ${({ theme }) => theme.colorGreenDark};
   border-radius: 1em;
-  max-width: 20dvw;
-  width: max-content;
+  width: min(80vw, 20em);
+  max-width: max(80vw, 20em);
   z-index: 10000;
-  overflow: hidden;
+  overflow: auto;
   margin-top: 1rem;
-
+ @media screen and (max-width: 768px) {
+  transform: translateX(-35%);
+      }
   .dropdown-header {
     padding: 1rem;
     border-bottom: 1px solid ${({ theme }) => theme.colorIcons};
