@@ -8,7 +8,8 @@ import Sidebar from "./components/sidebar/Sidebar"
 import GlobalStyles from "./components/providers/GlobalStyles"
 import AuthContext from "./context/AuthContext"
 import { SessionProvider } from "next-auth/react"
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const nunito = Nunito({
   weight: ["400", "500", "600", "700", "800"],
@@ -32,7 +33,6 @@ export default function RootLayout({
         />
       </head>
       <body className={nunito.className} suppressHydrationWarning>
-        <Analytics />
         <NextTopLoader
           height={5}
           color="#27AE60"
@@ -48,6 +48,8 @@ export default function RootLayout({
             </ContextProviders>
           </AuthContext>
         </SessionProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
