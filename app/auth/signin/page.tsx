@@ -37,7 +37,6 @@ export default function SignIn() {
 
       if (res?.ok) {
         await fetchTasks()
-        // Use the decoded callback URL for navigation
         window.location.href = decodedCallbackUrl
       }
     } catch (error) {
@@ -55,9 +54,9 @@ export default function SignIn() {
           padding: '2rem',
           borderRadius: '1rem',
           minWidth: '60%',
-          boxShadow: ` 0 0px 3px ${theme.color1}`
+          boxShadow: `0 0px 3px ${theme.colorGreenDark}`
         }}>
-        <h1 className="text-2xl font-bold mb-6">Sign In</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">Sign In</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="login" className="block mb-2">
